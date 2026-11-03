@@ -3,22 +3,27 @@
 import { useState } from "react";
 import { STATUS_OPTIONS, SOURCE_OPTIONS, type Application } from "@/lib/types";
 
-interface AddApplicationFormProps {
+interface ApplicationFormProps {
+  /** When provided, the form edits this application instead of creating a new one. */
+  application?: Application;
   onClose: () => void;
-  onCreated: (application: Application) => void;
+  onSaved: (application: Application) => void;
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export default function AddApplicationForm({ onClose, onCreated }: AddApplicationFormProps) {
-  const [company, setCompany] = useState("");
-  const [role, setRole] = useState("");
-  const [status, setStatus] = useState(STATUS_OPTIONS[0]);
-  const [dateApplied, setDateApplied] = useState(today());
-  const [salaryRange, setSalaryRange] = useState("");
-  const [source, setSource] = useState(SOURCE_OPTIONS[0]);
-  const [url, setUrl] = useState("");
-  const [notes, setNotes] = useState("");
+export default function ApplicationForm({ application, onClose, onSaved }: ApplicationFormProps) {
+  const isEdit = Boolean(application?._id);
+
+  const [company, setCompany] = useState(application?.company ?? "");
+  const [role, setRole] = useState(application?.role ?? "");
+  const [status, setStatus] = useState(application?.status ?? STATUS_OPTIONS[0]);
+  const [dateApplied, setDateApplied] = useState(application?.dateApplied?.slice(0, 10) ?? today());
+  const [salaryRange, setSalaryRange] = useState(application?.salaryRange ?? "");
+  const [source, setSource] = useState(application?.source ?? SOURCE_OPTIONS[0]);
+  const [contactEmail, setContactEmail] = useState(application?.contactEmail ?? "");
+  const [url, setUrl] = useState(application?.url ?? "");
+  const [notes, setNotes] = useState(application?.notes ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -33,19 +38,41 @@ export default function AddApplicationForm({ onClose, onCreated }: AddApplicatio
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ company, role, status, dateApplied, salaryRange, source, url, notes }),
-      });
+      const payload = {
+        company,
+        role,
+        status,
+        dateApplied,
+        salaryRange,
+        source,
+        contactEmail,
+        url,
+        notes,
+      };
 
-      if (!res.ok) throw new Error("Request failed");
+      const res = await fetch(
+        isEdit ? `/api/applications/${application!._id}` : "/api/applications",
+        {
+          method: isEdit ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
-      const created = await res.json();
-      onCreated(created);
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Request failed");
+      }
+
+      const saved = await res.json();
+      onSaved(saved);
       onClose();
-    } catch {
-      setError("Couldn't save that application. Try again.");
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message !== "Request failed"
+          ? err.message
+          : "Couldn't save that application. Try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -59,7 +86,7 @@ export default function AddApplicationForm({ onClose, onCreated }: AddApplicatio
       >
         <div className="flex items-center justify-between border-b border-[#E2E5EA] px-6 py-5">
           <h2 className="font-[family-name:var(--font-display)] text-lg font-medium">
-            Add application
+            {isEdit ? "Edit application" : "Add application"}
           </h2>
           <button
             onClick={onClose}
@@ -142,6 +169,17 @@ export default function AddApplicationForm({ onClose, onCreated }: AddApplicatio
           </div>
 
           <div>
+            <label className="mb-1 block text-sm font-medium text-[#1B1F23]">Contact email</label>
+            <input
+              type="email"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+              placeholder="recruiter@company.com"
+              className="w-full rounded-md border border-[#E2E5EA] px-3 py-2 text-sm focus:border-[#0F5257] focus:outline-none focus:ring-1 focus:ring-[#0F5257]"
+            />
+          </div>
+
+          <div>
             <label className="mb-1 block text-sm font-medium text-[#1B1F23]">Job posting URL</label>
             <input
               value={url}
@@ -170,7 +208,7 @@ export default function AddApplicationForm({ onClose, onCreated }: AddApplicatio
               disabled={submitting}
               className="rounded-md bg-[#0F5257] px-4 py-2 text-sm font-medium text-white hover:bg-[#0C4247] disabled:opacity-60"
             >
-              {submitting ? "Saving…" : "Save application"}
+              {submitting ? "Saving…" : isEdit ? "Save changes" : "Save application"}
             </button>
             <button
               type="button"

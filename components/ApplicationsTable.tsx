@@ -19,12 +19,14 @@ function formatDate(dateStr: string): string {
 interface ApplicationsTableProps {
   applications: Application[];
   onUpdate: (id: string, updates: Partial<Application>) => void;
+  onEdit: (application: Application) => void;
   onDelete: (id: string) => void;
 }
 
 export default function ApplicationsTable({
   applications,
   onUpdate,
+  onEdit,
   onDelete,
 }: ApplicationsTableProps) {
   const [filter, setFilter] = useState<ApplicationStatus | "All">("All");
@@ -126,7 +128,14 @@ export default function ApplicationsTable({
                     </select>
                   </td>
                   <td className="px-5 py-3 text-[#5B6472]">{app.salaryRange || "—"}</td>
-                  <td className="px-5 py-3 text-right">
+                  <td className="whitespace-nowrap px-5 py-3 text-right">
+                    <button
+                      onClick={() => onEdit(app)}
+                      className="mr-4 text-[#5B6472] hover:text-[#0F5257]"
+                      aria-label={`Edit ${app.company} application`}
+                    >
+                      Edit
+                    </button>
                     <button
                       onClick={() => app._id && onDelete(app._id)}
                       className="text-[#5B6472] hover:text-rose-600"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import AddApplicationForm from "@/components/AddApplicationForm";
+import ApplicationForm from "@/components/ApplicationForm";
 import StatsRow from "@/components/StatsRow";
 import ApplicationsTable from "@/components/ApplicationsTable";
 import type { Application } from "@/lib/types";
@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<Application | null>(null);
 
   useEffect(() => {
     fetch("/api/applications")
@@ -19,8 +20,30 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  function handleCreated(application: Application) {
-    setApplications((prev) => [application, ...prev]);
+  function handleSaved(saved: Application) {
+    setApplications((prev) => {
+      const exists = prev.some((a) => a._id === saved._id);
+      const next = exists
+        ? prev.map((a) => (a._id === saved._id ? saved : a))
+        : [saved, ...prev];
+      // Keep the same order the API uses: most recently applied first.
+      return next.sort((a, b) => b.dateApplied.localeCompare(a.dateApplied));
+    });
+  }
+
+  function openAdd() {
+    setEditing(null);
+    setShowForm(true);
+  }
+
+  function openEdit(application: Application) {
+    setEditing(application);
+    setShowForm(true);
+  }
+
+  function closeForm() {
+    setShowForm(false);
+    setEditing(null);
   }
 
   async function handleUpdate(id: string, updates: Partial<Application>) {
@@ -51,7 +74,7 @@ export default function Dashboard() {
           </p>
         </div>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={openAdd}
           className="rounded-md bg-[#0F5257] px-4 py-2 text-sm font-medium text-white hover:bg-[#0C4247]"
         >
           Add application
@@ -66,13 +89,19 @@ export default function Dashboard() {
           <ApplicationsTable
             applications={applications}
             onUpdate={handleUpdate}
+            onEdit={openEdit}
             onDelete={handleDelete}
           />
         </div>
       )}
 
       {showForm && (
-        <AddApplicationForm onClose={() => setShowForm(false)} onCreated={handleCreated} />
+        <ApplicationForm
+          key={editing?._id ?? "new"}
+          application={editing ?? undefined}
+          onClose={closeForm}
+          onSaved={handleSaved}
+        />
       )}
     </main>
   );

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb";
+import { STATUS_OPTIONS, SOURCE_OPTIONS } from "@/lib/types";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -31,7 +32,23 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// PATCH /api/applications/[id] — partial update (e.g. status change)
+// Fields a client is allowed to change. Anything else in the body
+// (_id, createdAt, stray keys) is ignored.
+const EDITABLE_FIELDS = [
+  "company",
+  "role",
+  "status",
+  "dateApplied",
+  "salaryRange",
+  "source",
+  "contactEmail",
+  "url",
+  "notes",
+] as const;
+
+const REQUIRED_FIELDS = ["company", "role", "dateApplied"] as const;
+
+// PATCH /api/applications/[id] — partial update (status change or full edit)
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const { id } = await params;
 
@@ -40,8 +57,31 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 
   try {
-    const updates = await request.json();
-    delete updates._id; // never allow overwriting the id
+    const body = await request.json();
+
+    const updates: Record<string, string> = {};
+    for (const field of EDITABLE_FIELDS) {
+      if (typeof body[field] === "string") {
+        updates[field] = body[field].trim();
+      }
+    }
+
+    for (const field of REQUIRED_FIELDS) {
+      if (field in updates && !updates[field]) {
+        return NextResponse.json({ error: `${field} can't be empty` }, { status: 400 });
+      }
+    }
+
+    if (body.status !== undefined && !STATUS_OPTIONS.includes(body.status)) {
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    }
+    if (body.source !== undefined && !SOURCE_OPTIONS.includes(body.source)) {
+      return NextResponse.json({ error: "Invalid source" }, { status: 400 });
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+    }
 
     const db = await getDb();
     const result = await db.collection("applications").findOneAndUpdate(
