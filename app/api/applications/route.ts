@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
+import { isValidDateOnly } from "@/lib/dates";
 import type { Application } from "@/lib/types";
 
 // GET /api/applications — list all applications, most recently applied first
@@ -34,12 +35,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (
+      body.followUpDate !== undefined &&
+      body.followUpDate !== "" &&
+      !isValidDateOnly(body.followUpDate)
+    ) {
+      return NextResponse.json({ error: "Invalid follow-up date" }, { status: 400 });
+    }
+
     const now = new Date().toISOString();
     const newApplication: Omit<Application, "_id"> = {
       company: body.company,
       role: body.role,
       status: body.status || "Applied",
       dateApplied: body.dateApplied,
+      followUpDate: body.followUpDate || "",
       salaryRange: body.salaryRange || "",
       source: body.source || "Other",
       contactEmail: body.contactEmail || "",

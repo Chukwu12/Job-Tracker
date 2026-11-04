@@ -1,19 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { formatDateOnly, todayDateOnly } from "@/lib/dates";
 import { STATUS_OPTIONS, type Application, type ApplicationStatus } from "@/lib/types";
 
 function daysSince(dateStr: string): number {
   const then = new Date(dateStr).getTime();
   const now = Date.now();
   return Math.floor((now - then) / (1000 * 60 * 60 * 24));
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
 }
 
 interface ApplicationsTableProps {
@@ -30,6 +24,7 @@ export default function ApplicationsTable({
   onDelete,
 }: ApplicationsTableProps) {
   const [filter, setFilter] = useState<ApplicationStatus | "All">("All");
+  const today = todayDateOnly();
 
   const filtered =
     filter === "All" ? applications : applications.filter((a) => a.status === filter);
@@ -65,13 +60,14 @@ export default function ApplicationsTable({
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-[#E2E5EA] bg-white">
-        <table className="w-full text-left text-sm">
+      <div className="overflow-x-auto rounded-lg border border-[#E2E5EA] bg-white">
+        <table className="w-full min-w-[760px] text-left text-sm">
           <thead>
             <tr className="border-b border-[#E2E5EA] text-[#5B6472]">
               <th className="px-5 py-3 font-medium">Company</th>
               <th className="px-5 py-3 font-medium">Role</th>
               <th className="px-5 py-3 font-medium">Applied</th>
+              <th className="px-5 py-3 font-medium">Follow-up</th>
               <th className="px-5 py-3 font-medium">Status</th>
               <th className="px-5 py-3 font-medium">Salary</th>
               <th className="px-5 py-3 font-medium"></th>
@@ -104,11 +100,24 @@ export default function ApplicationsTable({
                   </td>
                   <td className="px-5 py-3 text-[#5B6472]">{app.role}</td>
                   <td className="px-5 py-3 text-[#5B6472]">
-                    {formatDate(app.dateApplied)}
+                    {formatDateOnly(app.dateApplied)}
                     {stale && (
                       <span className="ml-2 text-amber-600" title="No update in 7+ days">
                         ●
                       </span>
+                    )}
+                  </td>
+                  <td className="px-5 py-3 text-[#5B6472]">
+                    {app.followUpDate ? (
+                      <span className={app.followUpDate < today ? "text-rose-600" : ""}>
+                        {app.followUpDate < today
+                          ? `Overdue · ${formatDateOnly(app.followUpDate)}`
+                          : app.followUpDate === today
+                            ? "Today"
+                            : formatDateOnly(app.followUpDate)}
+                      </span>
+                    ) : (
+                      "—"
                     )}
                   </td>
                   <td className="px-5 py-3">

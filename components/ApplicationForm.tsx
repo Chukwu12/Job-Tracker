@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { todayDateOnly } from "@/lib/dates";
 import { STATUS_OPTIONS, SOURCE_OPTIONS, type Application } from "@/lib/types";
 
 interface ApplicationFormProps {
@@ -10,15 +11,14 @@ interface ApplicationFormProps {
   onSaved: (application: Application) => void;
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
-
 export default function ApplicationForm({ application, onClose, onSaved }: ApplicationFormProps) {
   const isEdit = Boolean(application?._id);
 
   const [company, setCompany] = useState(application?.company ?? "");
   const [role, setRole] = useState(application?.role ?? "");
   const [status, setStatus] = useState(application?.status ?? STATUS_OPTIONS[0]);
-  const [dateApplied, setDateApplied] = useState(application?.dateApplied?.slice(0, 10) ?? today());
+  const [dateApplied, setDateApplied] = useState(application?.dateApplied?.slice(0, 10) ?? todayDateOnly());
+  const [followUpDate, setFollowUpDate] = useState(application?.followUpDate ?? "");
   const [salaryRange, setSalaryRange] = useState(application?.salaryRange ?? "");
   const [source, setSource] = useState(application?.source ?? SOURCE_OPTIONS[0]);
   const [contactEmail, setContactEmail] = useState(application?.contactEmail ?? "");
@@ -43,6 +43,7 @@ export default function ApplicationForm({ application, onClose, onSaved }: Appli
         role,
         status,
         dateApplied,
+        followUpDate,
         salaryRange,
         source,
         contactEmail,
@@ -114,6 +115,16 @@ export default function ApplicationForm({ application, onClose, onSaved }: Appli
               value={role}
               onChange={(e) => setRole(e.target.value)}
               placeholder="Fullstack Engineer"
+              className="w-full rounded-md border border-[#E2E5EA] px-3 py-2 text-sm focus:border-[#0F5257] focus:outline-none focus:ring-1 focus:ring-[#0F5257]"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-[#1B1F23]">Follow-up date</label>
+            <input
+              type="date"
+              value={followUpDate}
+              onChange={(e) => setFollowUpDate(e.target.value)}
               className="w-full rounded-md border border-[#E2E5EA] px-3 py-2 text-sm focus:border-[#0F5257] focus:outline-none focus:ring-1 focus:ring-[#0F5257]"
             />
           </div>

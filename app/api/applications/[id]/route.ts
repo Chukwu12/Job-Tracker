@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb";
+import { isValidDateOnly } from "@/lib/dates";
 import { STATUS_OPTIONS, SOURCE_OPTIONS } from "@/lib/types";
 
 interface RouteParams {
@@ -39,6 +40,7 @@ const EDITABLE_FIELDS = [
   "role",
   "status",
   "dateApplied",
+  "followUpDate",
   "salaryRange",
   "source",
   "contactEmail",
@@ -58,6 +60,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
   try {
     const body = await request.json();
+
+    if (
+      body.followUpDate !== undefined &&
+      body.followUpDate !== "" &&
+      !isValidDateOnly(body.followUpDate)
+    ) {
+      return NextResponse.json({ error: "Invalid follow-up date" }, { status: 400 });
+    }
 
     const updates: Record<string, string> = {};
     for (const field of EDITABLE_FIELDS) {

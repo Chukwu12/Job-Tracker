@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import ApplicationForm from "@/components/ApplicationForm";
 import StatsRow from "@/components/StatsRow";
 import ApplicationsTable from "@/components/ApplicationsTable";
+import { formatDateOnly, todayDateOnly } from "@/lib/dates";
 import type { Application } from "@/lib/types";
 
 export default function Dashboard() {
@@ -46,6 +47,17 @@ export default function Dashboard() {
     setEditing(null);
   }
 
+  const today = todayDateOnly();
+  const dueApplications = applications
+    .filter(
+      (application) =>
+        application.followUpDate &&
+        application.followUpDate <= today &&
+        application.status !== "Rejected" &&
+        application.status !== "Ghosted"
+    )
+    .sort((a, b) => (a.followUpDate ?? "").localeCompare(b.followUpDate ?? ""));
+
   async function handleUpdate(id: string, updates: Partial<Application>) {
     setApplications((prev) =>
       prev.map((a) => (a._id === id ? { ...a, ...updates } : a))
@@ -86,6 +98,37 @@ export default function Dashboard() {
       ) : (
         <div className="flex flex-col gap-6">
           <StatsRow applications={applications} />
+          {dueApplications.length > 0 && (
+            <section aria-labelledby="follow-ups-heading" className="border-y border-[#E2E5EA] py-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h2 id="follow-ups-heading" className="font-[family-name:var(--font-display)] text-lg font-medium">
+                  Follow-ups due
+                </h2>
+                <span className="text-sm text-[#5B6472]">{dueApplications.length}</span>
+              </div>
+              <ul className="divide-y divide-[#E2E5EA]">
+                {dueApplications.map((application) => (
+                  <li key={application._id} className="flex items-center justify-between gap-4 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-[#1B1F23]">{application.company}</p>
+                      <p className="truncate text-sm text-[#5B6472]">{application.role}</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-4">
+                      <span className={`text-sm ${application.followUpDate! < today ? "text-rose-600" : "text-amber-700"}`}>
+                        {application.followUpDate! < today ? "Overdue" : "Due today"} · {formatDateOnly(application.followUpDate!)}
+                      </span>
+                      <button
+                        onClick={() => openEdit(application)}
+                        className="text-sm text-[#0F5257] hover:underline"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           <ApplicationsTable
             applications={applications}
             onUpdate={handleUpdate}

@@ -1,12 +1,8 @@
 import type { Application } from "@/lib/types";
-
-function daysSince(dateStr: string): number {
-  const then = new Date(dateStr).getTime();
-  const now = Date.now();
-  return Math.floor((now - then) / (1000 * 60 * 60 * 24));
-}
+import { todayDateOnly } from "@/lib/dates";
 
 export default function StatsRow({ applications }: { applications: Application[] }) {
+  const today = todayDateOnly();
   const total = applications.length;
   const active = applications.filter(
     (a) => a.status !== "Rejected" && a.status !== "Ghosted"
@@ -14,15 +10,17 @@ export default function StatsRow({ applications }: { applications: Application[]
   const inInterview = applications.filter((a) => a.status === "Interview").length;
   const needsFollowUp = applications.filter(
     (a) =>
-      (a.status === "Applied" || a.status === "Screening") &&
-      daysSince(a.dateApplied) >= 7
+      a.status !== "Rejected" &&
+      a.status !== "Ghosted" &&
+      Boolean(a.followUpDate) &&
+      a.followUpDate! <= today
   ).length;
 
   const stats = [
     { label: "Total applications", value: total },
     { label: "Active", value: active },
     { label: "In interview", value: inInterview },
-    { label: "Needs follow-up", value: needsFollowUp, highlight: needsFollowUp > 0 },
+    { label: "Follow-ups due", value: needsFollowUp, highlight: needsFollowUp > 0 },
   ];
 
   return (
