@@ -28,6 +28,7 @@ if (process.env.NODE_ENV === "development") {
   clientPromise = client.connect();
 }
 
+// getDb - Gets the MongoDB database connection instance
 export async function getDb(): Promise<Db> {
   const client = await clientPromise;
   return client.db(dbName);

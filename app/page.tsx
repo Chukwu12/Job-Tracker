@@ -7,6 +7,7 @@ import ApplicationsTable from "@/components/ApplicationsTable";
 import { formatDateOnly, todayDateOnly } from "@/lib/dates";
 import type { Application } from "@/lib/types";
 
+// Dashboard - Main dashboard component that displays applications, stats, and follow-ups due
 export default function Dashboard() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,6 +22,7 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
+  // handleSaved - Updates the applications list after saving a new or edited application
   function handleSaved(saved: Application) {
     setApplications((prev) => {
       const exists = prev.some((a) => a._id === saved._id);
@@ -32,16 +34,19 @@ export default function Dashboard() {
     });
   }
 
+  // openAdd - Opens the form to add a new application
   function openAdd() {
     setEditing(null);
     setShowForm(true);
   }
 
+  // openEdit - Opens the form to edit an existing application
   function openEdit(application: Application) {
     setEditing(application);
     setShowForm(true);
   }
 
+  // closeForm - Closes the application form and resets editing state
   function closeForm() {
     setShowForm(false);
     setEditing(null);
@@ -58,6 +63,7 @@ export default function Dashboard() {
     )
     .sort((a, b) => (a.followUpDate ?? "").localeCompare(b.followUpDate ?? ""));
 
+  // handleUpdate - Updates an application field and syncs the change to the API
   async function handleUpdate(id: string, updates: Partial<Application>) {
     setApplications((prev) =>
       prev.map((a) => (a._id === id ? { ...a, ...updates } : a))
@@ -69,6 +75,7 @@ export default function Dashboard() {
     });
   }
 
+  // handleDelete - Deletes an application from the list and the API
   async function handleDelete(id: string) {
     setApplications((prev) => prev.filter((a) => a._id !== id));
     await fetch(`/api/applications/${id}`, { method: "DELETE" });

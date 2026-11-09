@@ -11,6 +11,7 @@ interface ApplicationFormProps {
   onSaved: (application: Application) => void;
 }
 
+// ApplicationForm - Modal form for creating a new application or editing an existing one
 export default function ApplicationForm({ application, onClose, onSaved }: ApplicationFormProps) {
   const isEdit = Boolean(application?._id);
 
@@ -27,6 +28,7 @@ export default function ApplicationForm({ application, onClose, onSaved }: Appli
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // handleSubmit - Validates form data and submits the application (create or update)
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");

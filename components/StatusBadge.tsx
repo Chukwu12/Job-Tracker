@@ -18,6 +18,7 @@ const TEXT_COLORS: Record<ApplicationStatus, string> = {
   Ghosted: "text-zinc-400",
 };
 
+// StatusBadge - Displays a colored status badge with a dot indicator for application status
 export default function StatusBadge({ status }: { status: ApplicationStatus }) {
   return (
     <span className={`inline-flex items-center gap-2 text-sm font-medium ${TEXT_COLORS[status]}`}>

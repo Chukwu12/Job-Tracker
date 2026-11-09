@@ -8,7 +8,7 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-// GET /api/applications/[id]
+// GET /api/applications/[id] — Retrieves a single application by ID
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   const { id } = await params;
 
@@ -50,7 +50,7 @@ const EDITABLE_FIELDS = [
 
 const REQUIRED_FIELDS = ["company", "role", "dateApplied"] as const;
 
-// PATCH /api/applications/[id] — partial update (status change or full edit)
+// PATCH /api/applications/[id] — Updates specific fields of an application with validation
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const { id } = await params;
 
@@ -111,7 +111,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// DELETE /api/applications/[id]
+// DELETE /api/applications/[id] — Deletes an application by ID
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   const { id } = await params;
 

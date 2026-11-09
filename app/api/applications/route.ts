@@ -3,7 +3,7 @@ import { getDb } from "@/lib/mongodb";
 import { isValidDateOnly } from "@/lib/dates";
 import type { Application } from "@/lib/types";
 
-// GET /api/applications — list all applications, most recently applied first
+// GET /api/applications — Retrieves all applications sorted by most recently applied first
 export async function GET() {
   try {
     const db = await getDb();
@@ -23,7 +23,7 @@ export async function GET() {
   }
 }
 
-// POST /api/applications — create a new application
+// POST /api/applications — Creates a new job application with validation
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
