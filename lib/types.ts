@@ -14,6 +14,7 @@ export interface Application {
   role: string;
   status: ApplicationStatus;
   dateApplied: string; // ISO date string, e.g. "2026-09-14"
+  followUpDate?: string;
   salaryRange?: string;
   source?: ApplicationSource;
   contactEmail?: string;

@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   description: "A personal tracker for job applications, interviews, and follow-ups.",
 };
 
+// RootLayout - Root layout component that sets up fonts and metadata for the entire application
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html

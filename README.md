@@ -34,12 +34,13 @@ A personal dashboard for tracking job applications, statuses, and follow-ups.
 - API routes: list/create (`app/api/applications/route.ts`), get/update/delete by id
   (`app/api/applications/[id]/route.ts`)
 - Dashboard: stats row, filterable table, inline status editing, add-application form
+- Edit any application's details from the table (same slide-over form as Add)
+- Set follow-up dates and review due or overdue applications from the dashboard
 
 ## Not yet built (Phase 2/3 ideas)
-- Follow-up reminders beyond the visual "stale" flag (e.g. email/notification)
+- Email or push notifications for follow-up reminders
 - Quick-add via pasting a job posting URL
 - AI-powered job description categorization (extract tech stack, level, salary, red flags)
-- Edit existing application details beyond status (currently: change status inline, or delete and re-add)
 
 ## Deploying
 Push to GitHub, then import the repo into Vercel (https://vercel.com/new). Add the same
